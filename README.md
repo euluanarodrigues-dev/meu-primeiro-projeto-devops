@@ -1,33 +1,34 @@
-# 🚀 Projeto DevOps: Da Containerização Local à Nuvem AWS
+Projeto DevOps: Da Containerização Local à Nuvem AWS
+Este projeto foi desenvolvido para consolidar conhecimentos práticos em engenharia DevOps, cobrindo o ciclo completo de empacotamento de uma aplicação web estática com Docker e o provisionamento da infraestrutura na nuvem através da Amazon Web Services (AWS).
 
-Este projeto foi desenvolvido para consolidar conhecimentos práticos em engenharia DevOps, cobrindo o ciclo completo de empacotamento de uma aplicação web estática utilizando **Docker** e o provisionamento de infraestrutura escalável na nuvem através da **Amazon Web Services (AWS)**.
+Proposta do Projeto
+Containerização: Empacotar um site institucional/portfólio utilizando o servidor web Nginx (versão Alpine).
 
----
+Infraestrutura como Serviço (IaaS): Provisionar uma máquina virtual segura (EC2) na AWS.
 
-## 🎯 Proposta do Projeto
-* **Containerização**: Empacotar um site institucional/portfólio usando um servidor web leve (Nginx Alpine).
-* **Infraestrutura como Serviço (IaaS)**: Provisionar uma máquina virtual segura na nuvem.
-* **Deploy Automatizado**: Conectar via terminal remoto para instalar dependências e rodar o container final em ambiente de produção.
+Deploy: Conectar via terminal remoto para configurar o ambiente e rodar o container final em produção.
 
----
+Desafios Enfrentados e Soluções (Troubleshooting)
+Durante o desenvolvimento, surgiram alguns problemas reais de configuração, permissões e redes. Abaixo estão listados os erros encontrados e como foram resolvidos:
 
-## 🛠️ Desafios Enfrentados e Soluções (Troubleshooting)
+1. Omissão do Contexto no Build do Docker
+Problema: Ao rodar o comando docker build -t meu-primeiro-app:v1 pela primeira vez, o terminal retornou um erro informando que faltavam argumentos.
 
-Durante o desenvolvimento do projeto, surgiram desafios reais de configuração, permissões e redes. Abaixo estão listados os problemas encontrados e como foram solucionados:
+Causa: Esqueci de incluir o caractere . (ponto) no final do comando, que indica ao Docker o diretório do contexto atual.
 
-### 1. Omissão do Contexto no Build do Docker
-* **Problema:** Ao tentar buildar a imagem local pela primeira vez com `docker build -t meu-primeiro-app:v1`, o terminal retornou um erro informando que o comando requeria um argumento extra.
-* **Causa:** Faltou incluir o caractere `.` (ponto) no final do comando, que indica ao Docker o diretório do contexto atual.
-* **Solução:** O comando foi corrigido para `docker build -t meu-primeiro-app:v1 .`.
+Solução: O comando foi corrigido para docker build -t meu-primeiro-app:v1 ..
 
-### 2. Extensão Oculta no Arquivo de Configuração
-* **Problema:** Mesmo com o comando de build corrigido, o Docker Engine retornou o erro `failed to solve: failed to read dockerfile: open Dockerfile: no such file or directory`.
-* **Causa:** O Windows gerou o arquivo com a extensão oculta `.txt` (`Dockerfile.txt`), impedindo o Docker de localizá-lo pelo nome padrão.
-* **Solução:** A extensão foi removida via prompt/gerenciador de arquivos, deixando o nome estritamente como `Dockerfile`. O build foi executado com sucesso logo em seguida.
+2. Extensão Oculta no Arquivo de Configuração
+Problema: Mesmo com o comando de build corrigido, o Docker retornou o erro failed to solve: failed to read dockerfile: open Dockerfile: no such file or directory.
 
-### 3. Restrição de Segurança no Par de Chaves Criptográficas (.pem)
-* **Problema:** Ao tentar efetuar a conexão SSH com a instância EC2 da AWS pelo Windows PowerShell, o sistema barrou o acesso alegando que as permissões da chave privada eram "muito abertas" ou houve conflito na identificação do usuário local do Windows.
-* **Causa:** O Linux exige que o arquivo de chave privada `.pem` seja acessível única e exclusivamente pelo proprietário. O gerenciamento de permissões nativo de herança do Windows entrava em conflito com essa regra.
-* **Solução:** Contornamos o bloqueio do ecossistema local injetando o parâmetro de desativação de checagem rígida temporária diretamente na linha de comando do SSH:
-  ```powershell
-  ssh -i minha-chave-aws.pem -o StrictHostKeyChecking=no ubuntu@<IP_PUBLICO>
+Causa: O Windows criou o arquivo com a extensão oculta .txt (ficando como Dockerfile.txt), o que impediu o Docker de localizá-lo pelo nome padrão.
+
+Solução: Removi a extensão .txt pelo gerenciador de arquivos, deixando o nome apenas como Dockerfile. O build rodou com sucesso logo em seguida.
+
+3. Restrição de Segurança na Chave SSH (.pem) no Windows
+Problema: Ao tentar conectar na instância EC2 da AWS pelo Windows PowerShell, o acesso foi negado porque as permissões da chave privada estavam "muito abertas".
+
+Causa: O SSH exige que o arquivo de chave .pem tenha permissões restritas apenas ao dono. O sistema de herança de permissões do Windows costuma entrar em conflito com essa regra do Linux.
+
+Solução: Para resolver o problema de forma rápida no ambiente local, usei o parâmetro que desativa a checagem rígida temporariamente direto na linha de comando do SSH:
+ssh -i minha-chave-aws.pem -o StrictHostKeyChecking=no ubuntu@<IP_PUBLICO>
